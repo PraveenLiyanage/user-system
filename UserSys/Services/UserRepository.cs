@@ -29,21 +29,33 @@ namespace UserSysApi.Services
             await conn.OpenAsync();
             using var reader = await cmd.ExecuteReaderAsync();
 
+            int ordId = reader.GetOrdinal("Id");
+            int ordName = reader.GetOrdinal("Name");
+            int ordEmail = reader.GetOrdinal("Email");
+            int ordDegree = reader.GetOrdinal("DegreeProgram");
+            int ordSpec = reader.GetOrdinal("Specialization");
+            int ordUni = reader.GetOrdinal("University");
+            int ordReg = reader.GetOrdinal("RegistrationNumber");
+            int ordBatch = reader.GetOrdinal("BatchYear");
+            int ordCreatedAt = reader.GetOrdinal("CreatedAt");
+
             while (await reader.ReadAsync())
             {
-                list.Add(new UserDto
+                var dto = new UserDto
                 {
-                    Id = reader.GetInt32(0),  
-                    Name = reader.GetString(1),  
-                    Email = reader.GetString(2),
-                    CreatedAt = reader.GetDateTime(3),
-                    DegreeProgram = reader.IsDBNull(4) ? null : reader.GetString(4),
-                    Specialization = reader.IsDBNull(5) ? null : reader.GetString(5),
-                    University = reader.IsDBNull(6) ? null : reader.GetString(6),
-                    RegistrationNumber = reader.IsDBNull(7) ? null : reader.GetString(7),
-                    BatchYear = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                    Id = reader.GetInt32(ordId),  
+                    Name = reader.GetString(ordName),  
+                    Email = reader.GetString(ordEmail),
+                    DegreeProgram = reader.IsDBNull(ordDegree) ? null : reader.GetString(ordDegree),
+                    Specialization = reader.IsDBNull(ordSpec) ? null : reader.GetString(ordSpec),
+                    University = reader.IsDBNull(ordUni) ? null : reader.GetString(ordUni),
+                    RegistrationNumber = reader.IsDBNull(ordReg) ? null : reader.GetString(ordReg),
+                    BatchYear = reader.IsDBNull(ordBatch) ? null : reader.GetInt32(ordBatch),
+                    CreatedAt = reader.GetDateTime(ordCreatedAt),
                     
-                });
+                };
+
+                list.Add(dto);
             }
 
             return list;
@@ -60,25 +72,33 @@ namespace UserSysApi.Services
             await conn.OpenAsync();
             using var reader = await cmd.ExecuteReaderAsync();
 
-            if (await reader.ReadAsync())
-            {
-                return new UserDto
+            if (!await reader.ReadAsync())
+            return null;
+
+            int ordId = reader.GetOrdinal("Id");
+            int ordName = reader.GetOrdinal("Name");
+            int ordEmail = reader.GetOrdinal("Email");
+            int ordDegree = reader.GetOrdinal("DegreeProgram");
+            int ordSpec = reader.GetOrdinal("Specialization");
+            int ordUni = reader.GetOrdinal("University");
+            int ordReg = reader.GetOrdinal("RegistrationNumber");
+            int ordBatch = reader.GetOrdinal("BatchYear");
+            int ordCreatedAt = reader.GetOrdinal("CreatedAt");
+
+            return new UserDto
                 {
-                    Id = reader.GetInt32(0),  
-                    Name = reader.GetString(1),  
-                    Email = reader.GetString(2),
-                    CreatedAt = reader.GetDateTime(3),
-                    DegreeProgram = reader.IsDBNull(4) ? null : reader.GetString(4),
-                    Specialization = reader.IsDBNull(5) ? null : reader.GetString(5),
-                    University = reader.IsDBNull(6) ? null : reader.GetString(6),
-                    RegistrationNumber = reader.IsDBNull(7) ? null : reader.GetString(7),
-                    BatchYear = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                    Id = reader.GetInt32(ordId),  
+                    Name = reader.GetString(ordName),  
+                    Email = reader.GetString(ordEmail),
+                    DegreeProgram = reader.IsDBNull(ordDegree) ? null : reader.GetString(ordDegree),
+                    Specialization = reader.IsDBNull(ordSpec) ? null : reader.GetString(ordSpec),
+                    University = reader.IsDBNull(ordUni) ? null : reader.GetString(ordUni),
+                    RegistrationNumber = reader.IsDBNull(ordReg) ? null : reader.GetString(ordReg),
+                    BatchYear = reader.IsDBNull(ordBatch) ? null : reader.GetInt32(ordBatch),
+                    CreatedAt = reader.GetDateTime(ordCreatedAt),
                     
                 };
             }
-
-            return null;
-        }
 
         // CREATE - Add new user
         public async Task<int> CreateAsync(UserDto dto)
@@ -117,8 +137,9 @@ namespace UserSysApi.Services
             cmd.Parameters.AddWithValue("@BatchYear", (object?)dto.BatchYear ?? DBNull.Value);
 
             await conn.OpenAsync();
-            var rowsAffected = await cmd.ExecuteNonQueryAsync();
-            return rowsAffected > 0;
+            var result = await cmd.ExecuteScalarAsync();
+            int rows = Convert.ToInt32(result);
+            return rows > 0;
         }
 
         // DELETE - Delete user by ID
@@ -130,8 +151,9 @@ namespace UserSysApi.Services
             cmd.Parameters.AddWithValue("@Id", id);
 
             await conn.OpenAsync();
-            var rowsAffected = await cmd.ExecuteNonQueryAsync();
-            return rowsAffected > 0;
+            var result = await cmd.ExecuteScalarAsync();
+            int rows = Convert.ToInt32(result);
+            return rows > 0;
         }
     }
 }
