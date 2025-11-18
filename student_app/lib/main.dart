@@ -127,7 +127,7 @@
 import 'package:flutter/material.dart';
 import 'screens/student_list_screen.dart';
 
-void main(){
+void main() {
   runApp(const StudentApp());
 }
 
@@ -135,12 +135,30 @@ class StudentApp extends StatelessWidget {
   const StudentApp({super.key});
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Student Registrations',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+          brightness: Brightness.light,
+        ),
+
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF3F4F6),
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+        ),
+
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+
       ),
       home: const StudentListScreen(),
     );
