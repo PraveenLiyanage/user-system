@@ -41,7 +41,7 @@ Student App (Flutter) → ApiService (HTTP) → ASP.NET Controllers → Reposito
 
 ### Frontend
 
-```
-flutter pub get
-flutter run -d chrome
-```
+   ```bash
+   flutter pub get
+   flutter run -d chrome
+   ```
