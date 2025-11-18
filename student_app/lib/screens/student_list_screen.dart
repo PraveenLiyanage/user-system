@@ -13,28 +13,63 @@ class StudentListScreen extends StatefulWidget {
 
 class _StudentListScreenState extends State<StudentListScreen> {
   final ApiService _api = ApiService();
-  late Future<List<Student>> _futureStudents;
+  late Future<void> _loadFuture;
+
+  final TextEditingController _searchCtrl = TextEditingController();
+  List<Student> _allStudents = [];
+  List<Student> _filteredStudents = [];
 
   @override
   void initState() {
     super.initState();
-    _futureStudents = _api.getStudent();
+    _loadFuture = _loadStudents();
+    _searchCtrl.addListener(_applyFilter);
   }
 
-  Future<void> _refresh() async {
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadStudents() async {
+    final list = await _api.getStudent();
     setState(() {
-      _futureStudents = _api.getStudent();
+      _allStudents = list;
+      _filteredStudents = list;
     });
+  }
+
+// Add search panel and filtering logic
+
+  void _applyFilter() {
+    final quary = _searchCtrl.text.trim().toLowerCase();
+    setState(() {
+      if (quary.isEmpty) {
+        _filteredStudents = _allStudents;
+      } else {
+        _filteredStudents = _allStudents.where((s) {
+          return s.name.toLowerCase().contains(quary) ||
+              s.email.toLowerCase().contains(quary) ||
+              (s.degreeProgram ?? '').toLowerCase().contains(quary) ||
+              (s.specialization ?? '').toLowerCase().contains(quary);
+        }).toList();
+      }
+    });
+  }
+
+
+  Future<void> _refresh() async {
+    await _loadStudents();
   }
 
   Future<void> _openCreateForm() async {
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const StudentFormScreen()),
+      MaterialPageRoute(builder: (_) => const StudentFormScreen()),
     );
     if (changed == true) {
-      _refresh();
+      await _loadStudents();
     }
   }
 
@@ -46,7 +81,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
       ),
     );
     if (changed == true) {
-      _refresh();
+      await _loadStudents();
     }
   }
 
@@ -56,47 +91,119 @@ class _StudentListScreenState extends State<StudentListScreen> {
       appBar: AppBar(
         title: const Text('Student Registrations'),
       ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<Student>>(
-          future: _futureStudents,
+      body: FutureBuilder<void>(
+          future: _loadFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (snapshot.connectionState == ConnectionState.waiting && _allStudents.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             }
 
-            final students = snapshot.data ?? [];
-
-            if (students.isEmpty) {
-              return const Center(
-                  child: Text('No students registrations found.'));
-            }
-
-            return ListView.builder(
-              itemCount: students.length,
-              itemBuilder: (context, index) {
-                final s = students[index];
-                return ListTile(
-                  title: Text(s.name),
-                  subtitle: Text(
-                      '${s.email}\n${s.degreeProgram ?? ''} ${s.specialization ?? ''}'),
-                  isThreeLine: true,
-                  onTap: () => _openDetail(s),
-                    // later add navigation to detail screen
-                );
-              },
+            return RefreshIndicator(
+              onRefresh: _refresh,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: TextField(
+                      controller: _searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: 'Search by Name, Email or Degree Program...',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: _filteredStudents.isEmpty
+                    ? const Center(
+                        child: Text('No registrasions found.'),
+                      )
+                    : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      itemCount: _filteredStudents.length,
+                      itemBuilder: (context, index) {
+                        final s = _filteredStudents[index];
+                        return _StudentCard(
+                          student: s,
+                          onTap: () => _openDetail(s),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),
+        floatingActionButton: FloatingActionButton.extended(onPressed: _openCreateForm, icon: const Icon(Icons.add), label: const Text('New Student')),
+    );
+  }
+}
+
+// Student Card Widget
+class _StudentCard extends StatelessWidget {
+  final Student student;
+  final VoidCallback onTap;
+
+  const _StudentCard({required this.student, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(padding: const EdgeInsets.all(16), 
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              child: Text(student.name.isNotEmpty 
+              ? student.name[0].toUpperCase()
+              : '?',
+              ),
+            ),
+
+// sizedBox for spacing
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    student.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    student.email,
+                    style: Theme.of(context).textTheme.bodySmall
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${student.degreeProgram ?? ''}  ${student.specialization ?? ''}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+            ),
+            if (student.batchYear != null)
+            Chip(
+              label: Text('Batch ${student.batchYear}'),
+            ),
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openCreateForm,
-          // later add navigation to add student screen
-        child: const Icon(Icons.add),
-      ),
+    ),
     );
   }
 }
