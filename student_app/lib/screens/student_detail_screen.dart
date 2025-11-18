@@ -3,7 +3,7 @@ import '../models/student.dart';
 import '../services/api_service.dart';
 import 'student_form_screen.dart';
 
-class StudentDetailScreen extends StatefulWidget{
+class StudentDetailScreen extends StatefulWidget {
   final Student student;
 
   const StudentDetailScreen({super.key, required this.student});
@@ -12,16 +12,17 @@ class StudentDetailScreen extends StatefulWidget{
   State<StudentDetailScreen> createState() => _StudentDetailScreenState();
 }
 
-class _StudentDetailScreenState extends State<StudentDetailScreen>{
+class _StudentDetailScreenState extends State<StudentDetailScreen> {
   final ApiService _api = ApiService();
   bool _deleting = false;
 
   Future<void> _delete() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder:(context) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: const Text('Delete Profile?'),
-        content: const Text('Are you sure you want to delete this student profile? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this student profile? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -29,7 +30,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>{
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -37,14 +41,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>{
 
     if (confirm != true) return;
 
-    setState(() {
-      _deleting = true;
-    });
+    setState(() => _deleting = true);
 
     try {
       await _api.deleteStudent(widget.student.id);
       if (mounted) {
-        Navigator.pop(context, true); // Indicate deletion
+        Navigator.pop(context, true); // tell list: changed
       }
     } catch (e) {
       if (mounted) {
@@ -57,7 +59,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>{
     }
   }
 
-  Future<void> _edit() async{
+  Future<void> _edit() async {
     final changed = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -65,89 +67,148 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>{
       ),
     );
 
-    if (changed == true && mounted){
-      Navigator.pop(context, true); // Indicate edited
+    if (changed == true && mounted) {
+      Navigator.pop(context, true); // go back & trigger refresh
     }
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     final s = widget.student;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(s.name),
       ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          children: [
+            // Header
+            Column(
+              children: [
+                Hero(
+                  tag: 'avatar_${s.id}',
+                  child: CircleAvatar(
+                    radius: 48,
+                    backgroundColor: Colors.blue.shade100,
+                    child: Text(
+                      s.name.isNotEmpty ? s.name[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  s.name,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  s.email,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF757575),
+                  ),
+                ),
+              ],
+            ),
 
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          Center( 
-            child: Hero(tag: 'avatar_${s.id}', child: CircleAvatar(
-            radius: 40,
-            child: Text(
-              s.name.isNotEmpty ? s.name[0].toUpperCase(): '?',
-              style: const TextStyle(fontSize: 28),
+            const SizedBox(height: 24),
+
+            // Info Card
+            Card(
+              elevation: 3,
+              shadowColor: Colors.black12,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _infoRow('Degree Program', s.degreeProgram ?? 'N/A'),
+                    _infoRow('Specialization', s.specialization ?? 'N/A'),
+                    _infoRow('University', s.university ?? 'N/A'),
+                    _infoRow(
+                        'Registration Number', s.registrationNumber ?? 'N/A'),
+                    _infoRow('Batch Year', s.batchYear?.toString() ?? 'N/A'),
+                    _infoRow(
+                      'Registered At',
+                      s.createdAt.toLocal().toString(),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
-          ListTile(
-            title: const Text('Name'),
-            subtitle: Text(s.name),
-          ),
-          ListTile(
-            title: const Text('Email'),
-            subtitle: Text(s.email),
-          ),
-          ListTile(
-            title: const Text('Degree Program'),
-            subtitle: Text(s.degreeProgram ?? 'N/A'),
-          ),
-          ListTile(
-            title: const Text('Specialization'),
-            subtitle: Text(s.specialization ?? 'N/A'),
-          ),
-          ListTile(
-            title: const Text('University'),
-            subtitle: Text(s.university ?? 'N/A'),
-          ),
-          ListTile(
-            title: const Text('Registration Number'),
-            subtitle: Text(s.registrationNumber ?? 'N/A'),
-          ),
-          ListTile(
-            title: const Text('Batch Year'),
-            subtitle: Text(s.batchYear?.toString() ?? 'N/A'),
-          ),
-          ListTile(
-            title: const Text('Registered At'),
-            subtitle: Text(s.createdAt.toLocal().toString()),
-          ),
-        ]
+          ],
+        ),
       ),
 
+      // Edit & Delete FABs
       floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton(
-            onPressed: _deleting ? null : _edit,
-            backgroundColor: Colors.blue,
+            heroTag: 'edit_${s.id}',
+            onPressed: _edit,
             child: const Icon(Icons.edit),
           ),
           const SizedBox(width: 16),
           FloatingActionButton(
-            onPressed: _deleting ? null : _delete,
+            heroTag: 'delete_${s.id}',
             backgroundColor: Colors.red,
+            onPressed: _deleting ? null : _delete,
             child: _deleting
-                ? const CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
-                )
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
                 : const Icon(Icons.delete),
           ),
         ],
       ),
     );
   }
-}     
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
