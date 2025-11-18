@@ -37,3 +37,11 @@ Student App (Flutter) → ApiService (HTTP) → ASP.NET Controllers → Reposito
 
    ```bash
    dotnet run
+   ```
+
+### Frontend
+
+```
+flutter pub get
+flutter run -d chrome
+```
