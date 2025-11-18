@@ -29,7 +29,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   @override
   void initState() {
     super.initState();
-    // If editing fileds are prefielled
     final s = widget.student;
     if (s != null) {
       _nameCtrl.text = s.name;
@@ -62,13 +61,17 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
     try {
       final name = _nameCtrl.text.trim();
       final email = _emailCtrl.text.trim();
-      final degree = _degreeCtrl.text.trim().isEmpty ? null : _degreeCtrl.text.trim();
-      final spec = _specCtrl.text.trim().isEmpty ? null : _specCtrl.text.trim();
+      final degree =
+          _degreeCtrl.text.trim().isEmpty ? null : _degreeCtrl.text.trim();
+      final spec =
+          _specCtrl.text.trim().isEmpty ? null : _specCtrl.text.trim();
       final uni = _uniCtrl.text.trim().isEmpty ? null : _uniCtrl.text.trim();
       final reg = _regCtrl.text.trim().isEmpty ? null : _regCtrl.text.trim();
-      final batch = _batchCtrl.text.trim().isEmpty ? null : int.tryParse(_batchCtrl.text.trim());
+      final batch = _batchCtrl.text.trim().isEmpty
+          ? null
+          : int.tryParse(_batchCtrl.text.trim());
 
-      if (widget.student == null){
+      if (widget.student == null) {
         // Create
         await _api.createStudent(
           name: name,
@@ -79,7 +82,6 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
           registrationNumber: reg,
           batchYear: batch,
         );
-
       } else {
         // Update
         final updated = Student(
@@ -96,24 +98,24 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
         await _api.updateStudent(updated);
       }
 
-      if (mounted){
-        Navigator.pop( context, true); //indicate saved 
+      if (mounted) {
+        Navigator.pop(context, true); // indicate saved
       }
     } catch (e) {
-      if (mounted){
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving student: $e')),
         );
       }
     } finally {
-      if (mounted){
+      if (mounted) {
         setState(() => _saving = false);
       }
     }
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     final isEdit = widget.student != null;
 
     return Scaffold(
@@ -126,62 +128,103 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Name is required' : null,
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: const InputDecoration(labelText: 'Name'),
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? 'Name is required'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _emailCtrl,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                              .hasMatch(v.trim())) {
+                            return 'Enter a valid email';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _degreeCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Degree Program',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _specCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Specialization',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _uniCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'University',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _regCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Registration Number',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _batchCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Batch Year',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              TextFormField(
-                controller: _emailCtrl,
-                decoration: const InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
-                validator: (v){
-                  if (v == null || v.trim().isEmpty){
-                    return 'Email is required';
-                  }
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())){
-                    return 'Enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _degreeCtrl,
-                decoration: const InputDecoration(labelText: 'Degree Program'),
-              ),
-              TextFormField(
-                controller: _specCtrl,
-                decoration: const InputDecoration(labelText: 'Specialization'),
-              ),
-              TextFormField(
-                controller: _uniCtrl,
-                decoration: const InputDecoration(labelText: 'University'),
-              ),
-              TextFormField(
-                controller: _regCtrl,
-                decoration: const InputDecoration(labelText: 'Registration Number'),
-              ),
-              TextFormField(
-                controller: _batchCtrl,
-                decoration: const InputDecoration(labelText: 'Batch Year'),
-                keyboardType: TextInputType.number,
-              ),
-
-
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: _saving ? null : _save,
+                style: ElevatedButton.styleFrom(
+                  minimumSize:
+                      const Size.fromHeight(50), // full-width tall button
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
                 icon: _saving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save),
-                label: Text(isEdit ? 'Update' : 'Create' ),
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save),
+                label: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    isEdit ? 'Update' : 'Create',
+                    key: ValueKey(isEdit),
+                  ),
+                ),
               ),
-              
             ],
           ),
         ),
