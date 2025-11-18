@@ -77,18 +77,21 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>{
     return Scaffold(
       appBar: AppBar(
         title: Text(s.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _edit,
-          ),
-        ],
       ),
-
 
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
+          Center( 
+            child: Hero(tag: 'avatar_${s.id}', child: CircleAvatar(
+            radius: 40,
+            child: Text(
+              s.name.isNotEmpty ? s.name[0].toUpperCase(): '?',
+              style: const TextStyle(fontSize: 28),
+                ),
+              ),
+            ),
+          ),
           ListTile(
             title: const Text('Name'),
             subtitle: Text(s.name),
@@ -124,15 +127,26 @@ class _StudentDetailScreenState extends State<StudentDetailScreen>{
         ]
       ),
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: _deleting ? null : _delete,
-        backgroundColor: Colors.red,
-        child: _deleting
-            ? const CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(Colors.white),
-            )
-            : const Icon(Icons.delete),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: _deleting ? null : _edit,
+            backgroundColor: Colors.blue,
+            child: const Icon(Icons.edit),
+          ),
+          const SizedBox(width: 16),
+          FloatingActionButton(
+            onPressed: _deleting ? null : _delete,
+            backgroundColor: Colors.red,
+            child: _deleting
+                ? const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                )
+                : const Icon(Icons.delete),
+          ),
+        ],
       ),
     );
   }
