@@ -10,14 +10,12 @@ Simple student registration system using:
 
 - Create / View / Update / Delete student profiles
 - Stored-procedure-based CRUD in SQL Server
-- Clean Flutter UI with search, cards, and animations
+- Flutter UI with search, cards, and animations
 - Separation of concerns: DB ↔ Repository ↔ Controller ↔ Flutter service
 
 ## Architecture
 
 Student App (Flutter) → ApiService (HTTP) → ASP.NET Controllers → Repository → Stored Procedures → SQL Server
-
-(Include a simple diagram image here)
 
 ## Tech Stack
 
