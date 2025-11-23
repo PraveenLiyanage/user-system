@@ -124,43 +124,114 @@
 //   }
 // }
 
-import 'package:flutter/material.dart';
-import 'screens/student_list_screen.dart';
 
-void main() {
+
+
+
+import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'screens/student_list_screen.dart';
+import 'screens/student_login_screen.dart';
+import 'services/auth_service.dart';
+import 'models/logged_in_user.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+
+  await Hive.openBox('localdb');
+
   runApp(const StudentApp());
 }
 
 class StudentApp extends StatelessWidget {
   const StudentApp({super.key});
 
+  Future<bool> _checkLoggedIn() async {
+    final auth = AuthService();
+    LoggedInUser? u = await auth.getCurrentUser();
+
+    return u != null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Student Registrations',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          brightness: Brightness.light,
-        ),
-
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF3F4F6),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 0,
-        ),
-
-        cardTheme: CardTheme(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      return MaterialApp(
+        title: 'Student Registrations',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blueAccent,
           ),
+          useMaterial3: true,
         ),
-
-      ),
-      home: const StudentListScreen(),
-    );
+        home: FutureBuilder<bool>(
+          future: _checkLoggedIn(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+  
+            final loggedIn = snapshot.data!;
+            if (loggedIn) {
+              return const StudentListScreen();
+            } else {
+              return const StudentLoginScreen();
+            }
+          },
+        ),
+      );
+    }
   }
-}
+
+
+
+
+
+// import 'package:flutter/material.dart';
+// import 'screens/student_list_screen.dart';
+// import 'screens/student_login_screen.dart';
+// import 'services/auth_service.dart';
+
+// void main() {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   runApp(const StudentApp());
+// }
+
+// class StudentApp extends StatelessWidget {
+//   const StudentApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final auth = AuthService();
+
+//     return MaterialApp(
+//       title: 'Student Registrations',
+//       theme: ThemeData(
+//         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+//         useMaterial3: true,
+//       ),
+//       home: FutureBuilder<bool>(
+//         future: auth.getCurrentUser().then((u) => u != null),
+//         builder: (context, snapshot) {
+//           if (!snapshot.hasData) {
+//             // check karaganna thiyenakan loading
+//             return const Scaffold(
+//               body: Center(child: CircularProgressIndicator()),
+//             );
+//           }
+
+//           final loggedIn = snapshot.data ?? false;
+//           if (loggedIn) {
+//             return const StudentListScreen(); // Auto-login
+//           } else {
+//             return const StudentLoginScreen();
+//           }
+//         },
+//       ),
+//     );
+//   }
+// }

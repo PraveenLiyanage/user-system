@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:student_app/screens/student_login_screen.dart';
+import 'package:student_app/services/auth_service.dart';
 import '../models/student.dart';
 import '../services/api_service.dart';
 import 'student_detail_screen.dart';
@@ -87,6 +89,21 @@ class _StudentListScreenState extends State<StudentListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Registrations'),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                final auth = AuthService();
+                await auth.logout();
+                if (!context.mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StudentLoginScreen()),
+                  (route) => false,
+                );
+              }
+            )
+        ],
       ),
       body: FutureBuilder<void>(
         future: _loadFuture,
@@ -109,8 +126,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   child: TextField(
                     controller: _searchCtrl,
                     decoration: InputDecoration(
-                      hintText:
-                          'Search by Name, Email or Degree Program...',
+                      hintText: 'Search by Name, Email or Degree Program...',
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
                       fillColor: Colors.white,
@@ -218,7 +234,7 @@ class _StudentCard extends StatelessWidget {
               if (student.batchYear != null)
                 Chip(
                   label: Text('Batch ${student.batchYear}'),
-                ),
+              ),
             ],
           ),
         ),
