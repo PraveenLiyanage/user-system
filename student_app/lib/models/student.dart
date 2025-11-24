@@ -35,4 +35,16 @@ class Student {
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
+
+  // Map<String, dynamic> toJson() => {
+  //       'id': id,
+  //       'name': name,
+  //       'email': email,
+  //       'degreeProgram': degreeProgram,
+  //       'specialization': specialization,
+  //       'university': university,
+  //       'registrationNumber': registrationNumber,
+  //       'batchYear': batchYear,
+  //       'createdAt': createdAt.toIso8601String(),
+  //     };
 }
