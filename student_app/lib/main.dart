@@ -129,7 +129,6 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'screens/student_list_screen.dart';
 import 'screens/student_login_screen.dart';

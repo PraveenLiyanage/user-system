@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import '../models/student.dart';
 import '../services/api_service.dart';
 import 'student_form_screen.dart';
+import '../Widgets/app_header.dart';
+import '../Widgets/app_footer.dart';
+
+// Correct import
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StudentDetailScreen extends StatefulWidget {
   final Student student;
@@ -15,6 +21,10 @@ class StudentDetailScreen extends StatefulWidget {
 class _StudentDetailScreenState extends State<StudentDetailScreen> {
   final ApiService _api = ApiService();
   bool _deleting = false;
+
+  // Correct desktop detection
+  bool isWebDesktop() =>
+      kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
   Future<void> _delete() async {
     final confirm = await showDialog<bool>(
@@ -46,13 +56,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     try {
       await _api.deleteStudent(widget.student.id);
       if (mounted) {
-        Navigator.pop(context, true); // tell list: changed
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting student profile: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error deleting: $e')));
       }
     } finally {
       if (mounted) setState(() => _deleting = false);
@@ -68,7 +77,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     );
 
     if (changed == true && mounted) {
-      Navigator.pop(context, true); // go back & trigger refresh
+      Navigator.pop(context, true);
     }
   }
 
@@ -77,52 +86,52 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     final s = widget.student;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(s.name),
-      ),
-      body: SingleChildScrollView(
+      appBar: isWebDesktop()
+          ? null
+          : AppBar(
+              title: Text(s.name), // FIXED
+            ),
+
+body: Column(
+  children: [
+    if (isWebDesktop()) const AppHeader(),
+
+    Expanded(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
         child: Column(
           children: [
-            // Header
-            Column(
-              children: [
-                Hero(
-                  tag: 'avatar_${s.id}',
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundColor: Colors.blue.shade100,
-                    child: Text(
-                      s.name.isNotEmpty ? s.name[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  s.name,
+            Hero(
+              tag: 'avatar_${s.id}',
+              child: CircleAvatar(
+                radius: 48,
+                backgroundColor: Colors.blue.shade100,
+                child: Text(
+                  s.name.isNotEmpty ? s.name[0].toUpperCase() : '?',
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 36,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  s.email,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF757575),
-                  ),
-                ),
-              ],
+              ),
             ),
-
+            const SizedBox(height: 12),
+            Text(
+              s.name,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              s.email,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF757575),
+              ),
+            ),
             const SizedBox(height: 24),
-
-            // Info Card
             Card(
               elevation: 3,
               shadowColor: Colors.black12,
@@ -136,8 +145,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                     _infoRow('Degree Program', s.degreeProgram ?? 'N/A'),
                     _infoRow('Specialization', s.specialization ?? 'N/A'),
                     _infoRow('University', s.university ?? 'N/A'),
-                    _infoRow(
-                        'Registration Number', s.registrationNumber ?? 'N/A'),
+                    _infoRow('Registration Number',
+                        s.registrationNumber ?? 'N/A'),
                     _infoRow('Batch Year', s.batchYear?.toString() ?? 'N/A'),
                     _infoRow(
                       'Registered At',
@@ -150,17 +159,19 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           ],
         ),
       ),
+    ),
 
-      // Edit & Delete FABs
-      floatingActionButton: Row(
-        mainAxisSize: MainAxisSize.min,
+    Padding(
+      padding: const EdgeInsets.only(bottom: 12.0, right: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
             heroTag: 'edit_${s.id}',
             onPressed: _edit,
             child: const Icon(Icons.edit),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 10),
           FloatingActionButton(
             heroTag: 'delete_${s.id}',
             backgroundColor: Colors.red,
@@ -178,6 +189,39 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           ),
         ],
       ),
+    ),
+
+    const AppFooter(),
+  ],
+),
+
+
+      // floatingActionButton: Row(
+      //   mainAxisSize: MainAxisSize.min,
+      //   children: [
+      //     FloatingActionButton(
+      //       heroTag: 'edit_${s.id}',
+      //       onPressed: _edit,
+      //       child: const Icon(Icons.edit),
+      //     ),
+      //     const SizedBox(width: 16),
+      //     FloatingActionButton(
+      //       heroTag: 'delete_${s.id}',
+      //       backgroundColor: Colors.red,
+      //       onPressed: _deleting ? null : _delete,
+      //       child: _deleting
+      //           ? const SizedBox(
+      //               width: 20,
+      //               height: 20,
+      //               child: CircularProgressIndicator(
+      //                 strokeWidth: 2,
+      //                 valueColor: AlwaysStoppedAnimation(Colors.white),
+      //               ),
+      //             )
+      //           : const Icon(Icons.delete),
+      //     ),
+      //   ],
+      // ),
     );
   }
 

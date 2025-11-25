@@ -5,6 +5,8 @@ import '../models/student.dart';
 import '../services/api_service.dart';
 import 'student_detail_screen.dart';
 import 'student_form_screen.dart';
+import '../Widgets/app_header.dart';
+import '../Widgets/app_footer.dart';
 
 class StudentListScreen extends StatefulWidget {
   const StudentListScreen({super.key});
@@ -87,24 +89,24 @@ class _StudentListScreenState extends State<StudentListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Student Registrations'),
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () async {
-                final auth = AuthService();
-                await auth.logout();
-                if (!context.mounted) return;
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const StudentLoginScreen()),
-                  (route) => false,
-                );
-              }
-            )
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Student Registrations'),
+      //   actions: [
+      //     IconButton(
+      //         icon: const Icon(Icons.logout),
+      //         onPressed: () async {
+      //           final auth = AuthService();
+      //           await auth.logout();
+      //           if (!context.mounted) return;
+      //           Navigator.pushAndRemoveUntil(
+      //             context,
+      //             MaterialPageRoute(builder: (_) => const StudentLoginScreen()),
+      //             (route) => false,
+      //           );
+      //         }
+      //       )
+      //   ],
+      // ),
       body: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -120,9 +122,10 @@ class _StudentListScreenState extends State<StudentListScreen> {
             onRefresh: _refresh,
             child: Column(
               children: [
+                const AppHeader(),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: TextField(
                     controller: _searchCtrl,
                     decoration: InputDecoration(
@@ -155,19 +158,39 @@ class _StudentListScreenState extends State<StudentListScreen> {
                           },
                         ),
                 ),
+                Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), 
+                child: Align(
+                  alignment: Alignment.centerRight,
+                    child: ElevatedButton.icon(
+                    onPressed: _openCreateForm,
+                    icon: const Icon(Icons.add),
+                    label: const Text('New Student'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 202, 216, 255),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      minimumSize: const Size(150, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7),
+                          ),
+                        ),
+                      )
+                    ),
+                  ),
+                const AppFooter(),
               ],
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openCreateForm,
-        icon: const Icon(Icons.add),
-        label: const Text('New Student'),
-      ),
     );
   }
 }
+
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: _openCreateForm,
+      //   icon: const Icon(Icons.add),
+      //   label: const Text('New Student'),
+      // ),
 
 // Student Card Widget
 class _StudentCard extends StatelessWidget {
